@@ -61,7 +61,8 @@ local function animyCheck()
           ["360p"] = "/hls/360",
         }
 
-        local match_pattern = [=[https://mangavost.org/content/stream/[^"']+/hls/index.m3u8]=]
+        -- local match_pattern = [=[https://mangavost.org/content/stream/[^"']+/hls/index.m3u8]=]
+        local match_pattern = [=[https://mangavost.org/content/stream/[a-zA-Z0-9-_+.%%/]+/hls/index.m3u8]=]
         local player_src = fetch(player_url, o)
         local vid_url = player_src:match(match_pattern)
         if vid_url then
