@@ -51,7 +51,7 @@ local function animyCheck()
     path=path:gsub("###.+$","")
 
     local main_src = fetch(path, o)
-    local player_url = main_src:match([=[<iframe src="([^"]+)"]=])
+    local player_url = main_src:match([=[<iframe[^>]+src="([^"]+)"]=])
     if player_url then
       -- msg.info(player_url)
       if player_url:match"mangavost%.org" then
@@ -61,7 +61,7 @@ local function animyCheck()
           ["360p"] = "/hls/360",
         }
 
-        local match_pattern = [=[https://mangavost.org/content/stream/[^/]+/%w*_?%d+_%d+/hls/index.m3u8]=]
+        local match_pattern = [=[https://mangavost.org/content/stream/[^"']+/hls/index.m3u8]=]
         local player_src = fetch(player_url, o)
         local vid_url = player_src:match(match_pattern)
         if vid_url then
