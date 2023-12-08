@@ -37,7 +37,7 @@ local function fetch(url,opts)
   end
 end
 
-local function animyCheck()
+local function animediaCheck()
   local path = mp.get_property("path", "")
   -- local path = mp.get_property("stream-open-filename", "")
   if path:match("^(%a+://amedia.online/.*)") then
@@ -53,6 +53,8 @@ local function animyCheck()
     local main_src = fetch(path, o)
     local player_url = main_src:match([=[<iframe[^>]+src="([^"]+)"]=])
     if player_url then
+      -- TODO: fill playlist with all the episodes if link is not per-episode
+
       -- msg.info(player_url)
       if player_url:match"mangavost%.org" then
         local q = {
@@ -64,17 +66,19 @@ local function animyCheck()
         -- local match_pattern = [=[https://mangavost.org/content/stream/[^"']+/hls/index.m3u8]=]
         local match_pattern = [=[https://mangavost.org/content/stream/[a-zA-Z0-9-_+.%%/]+/hls/index.m3u8]=]
         local player_src = fetch(player_url, o)
+        local playlist = {"#EXTM3U"}
         local vid_url = player_src:match(match_pattern)
         if vid_url then
           local qual = q[req_o.q] or q["auto"]
           vid_url = vid_url:gsub("/hls", qual)
-          local title_core = main_src:match([=[og:title" content="([^"]+)"]=])
-          local ser_num = path:match([=[/episode/(%d+)/seriya]=])
-          -- TODO: иногда серии могут иметь не ту нумерацию, которая в URL
-          local title = ("%s - серия %d"):format(title_core, ser_num)
-          mp.set_property("title", title)
-          mp.set_property("stream-open-filename", vid_url)
-          -- TODO: fill playlist with neighbour episodes
+          local title = main_src:match([=[og:title" content="([^"]+) смотреть аниме онлайн"]=])
+          if title then table.insert(playlist, ("#EXTINF:0,%s"):format(title)) end
+          table.insert(playlist, vid_url)
+
+          mp.set_property("stream-open-filename", ("memory://%s"):format(table.concat(playlist, "\n")))
+
+          -- mp.set_property("title", title) -- this makes title to not replace when loading another video
+          -- mp.set_property("stream-open-filename", vid_url)
         else
           msg.error[[Current player is MangaVost, but something gone wrong when we tried to get video URL. Please, report.]] -- luacheck: ignore
         end
@@ -84,9 +88,9 @@ local function animyCheck()
         os.exit(1)
       end
     end
-    -- mp.set_property("ytdl_hook-exclude", 'animy')
+    -- mp.set_property("ytdl_hook-exclude", 'animedia')
   end
 end
 
-mp.add_hook("on_load",10, animyCheck)
+mp.add_hook("on_load", 10, animediaCheck)
 
